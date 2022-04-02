@@ -20,5 +20,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 40,
+    paddingBottom: 40,
   }
 })
