@@ -1,5 +1,5 @@
-import React from "react";
-import { Button } from "native-base";
+import React from 'react'
+import { Button } from 'native-base'
 import type { IButtonProps } from 'native-base'
 
 const ButtonProps: IButtonProps = {
