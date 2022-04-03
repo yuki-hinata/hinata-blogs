@@ -4,6 +4,7 @@ import type { IButtonProps } from 'native-base'
 
 const ButtonProps: IButtonProps = {
   backgroundColor: '#AEDBDB',
+  size: 'lg'
 }
 
 export const DefaultButton: React.FC<IButtonProps> = ({ children, ...props }) => {

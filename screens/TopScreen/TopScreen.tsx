@@ -6,7 +6,7 @@ export const TopScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Hinata-App</Text>
-      <DefaultButton>新規登録を行う</DefaultButton>
+      <DefaultButton onPress={() => console.log('push')}>新規登録を行う</DefaultButton>
     </View>
   )
 }
