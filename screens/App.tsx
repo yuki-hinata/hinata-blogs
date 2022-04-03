@@ -1,11 +1,12 @@
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import React from 'react';
+import { NativeBaseProvider } from 'native-base';
 
 import useCachedResources from '../hooks/useCachedResources';
 import useColorScheme from '../hooks/useColorScheme';
-import Navigation from '../navigation';
+import { RootNavigator } from '../navigation/RootNavigator';
 
 export default function App() {
+  // わざわざこれでやらなくても、isLoadingとsetIsloadingで判断すればよいのでは。
   const isLoadingComplete = useCachedResources();
   const colorScheme = useColorScheme();
 
@@ -13,10 +14,9 @@ export default function App() {
     return null;
   } else {
     return (
-      <SafeAreaProvider>
-        <Navigation colorScheme={colorScheme} />
-        <StatusBar />
-      </SafeAreaProvider>
+      <NativeBaseProvider>
+        <RootNavigator />
+      </NativeBaseProvider>
     );
   }
 }
