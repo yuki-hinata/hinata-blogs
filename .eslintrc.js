@@ -5,8 +5,7 @@ module.exports = {
     node: true
   },
   extends: [
-    'plugin:react/recommended',
-    'standard'
+    'plugin:react/recommended'
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -21,7 +20,5 @@ module.exports = {
     '@typescript-eslint'
   ],
   rules: {
-    'no-use-before-define': 'off',
-    '@typescript-eslint/no-use-before-define': ['error']
   }
 }
