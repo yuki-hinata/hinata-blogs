@@ -1,35 +1,34 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, ActionSheetIOS, Alert } from 'react-native'
-import { Input, Image, Button, FormControl } from 'native-base'
+import { Input, Image, Button } from 'native-base'
 import { DefaultButton } from '../../ui/defaultButton'
 import * as ImagePicker from 'expo-image-picker'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { auth, db, fireStorage } from '../../firebase'
 import { collection, addDoc } from '@firebase/firestore'
-import { getDownloadURL, ref, uploadBytes, uploadString } from '@firebase/storage'
+import { getDownloadURL, ref, uploadBytes } from '@firebase/storage'
 
 export const RegisterScreen = () => {
   const [defaultIcon, setDefaultIcon] = useState('https://wallpaperaccess.com/full/317501.jpg')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [nickname, setNickname] = useState('')
+  const userRef = ref(fireStorage, `user/${email}.jpg`)
 
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
+    const userIcon = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
+      quality: 0,
       allowsEditing: true
     })
     
     // 途中でキャンセル処理が行われなかった場合、写真が更新される。
-    if (!result.cancelled) {
-      const response = await fetch(result.uri)
+    if (!userIcon.cancelled) {
+      const response = await fetch(userIcon.uri)
       const Blob = await response.blob();
-      const Ref = ref(fireStorage, `user/${email}.jpg`)
-      const upload =  uploadBytes(Ref, Blob)
-      setDefaultIcon(result.uri)
+      uploadBytes(userRef, Blob)
+      setDefaultIcon(userIcon.uri)
     }
-
   }
 
   const onChangeIcon = () =>
@@ -45,29 +44,39 @@ export const RegisterScreen = () => {
       }
     )
 
-  const handleSubmit = async() => {
-    try {
-      const user = await createUserWithEmailAndPassword(auth, email, password)
-      const docRef = await addDoc(collection(db, 'users'), {
-        nickname: nickname,
-        icon: defaultIcon
-      })
-    } catch (error: any) {
-      switch(error.code) {
-        case 'auth/email-already-in-use':
-          Alert.alert('使用済みメールアドレス', '入力されたメールアドレスはすでに使用されています。')
-          break
-        case 'auth/invalid-email':
-          Alert.alert('無効なメールアドレス', '正しい形式のメールアドレスを入力してください。')
-          break
-        case 'auth/weak-password':
-          Alert.alert('無効なパスワード', '６文字以上の文字列を指定してください。')
-          break
-        default:
-          Alert.alert('アカウントの作成に失敗しました。', '一度アプリを閉じるか、通信状況を確認してください。')
-      } 
+    const handleSubmit = async () => {
+      try {
+        await getDownloadURL(userRef).then((url) => {
+          const xhr = new XMLHttpRequest();
+          xhr.responseType = 'blob';
+          xhr.onload = () => {
+            xhr.response
+          }
+          xhr.open('GET', url)
+          xhr.send()
+          createUserWithEmailAndPassword(auth, email, password)
+          addDoc(collection(db, 'users'), {
+            nickname: nickname,
+            icon: url
+        })
+        }
+        ).catch((error) => console.error(error))
+      } catch (error: any) {
+        switch(error.code) {
+          case 'auth/email-already-in-use':
+            Alert.alert('使用済みメールアドレス', '入力されたメールアドレスはすでに使用されています。')
+            break
+          case 'auth/invalid-email':
+            Alert.alert('無効なメールアドレス', '正しい形式のメールアドレスを入力してください。')
+            break
+          case 'auth/weak-password':
+            Alert.alert('無効なパスワード', '６文字以上の文字列を指定してください。')
+            break
+          default:
+            Alert.alert('アカウントの作成に失敗しました。', '一度アプリを閉じるか、通信状況を確認してください。')
+        } 
+      }
     }
-  }
 
   return (
     <View style={{ flex: 1 }}>
