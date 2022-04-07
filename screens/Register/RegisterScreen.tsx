@@ -7,8 +7,15 @@ import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { auth, db, fireStorage } from '../../firebase'
 import { collection, addDoc } from '@firebase/firestore'
 import { getDownloadURL, ref, uploadBytes } from '@firebase/storage'
+import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 
-export const RegisterScreen = () => {
+type Recommend = {
+  Recommend: undefined;
+}
+
+type Props = NativeStackScreenProps<Recommend, 'Recommend'>
+
+export const RegisterScreen = ({ navigation }: Props) => {
   const [defaultIcon, setDefaultIcon] = useState('https://wallpaperaccess.com/full/317501.jpg')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -55,28 +62,32 @@ export const RegisterScreen = () => {
           xhr.open('GET', url)
           xhr.send()
           createUserWithEmailAndPassword(auth, email, password)
-          addDoc(collection(db, 'users'), {
-            nickname: nickname,
-            icon: url
-        })
+            .then(() => {          addDoc(collection(db, 'users'), {
+              nickname: nickname,
+              icon: url
+            }),
+            navigation.navigate('Recommend')})
+            .catch((error) => {
+              switch(error.code) {
+                case 'auth/email-already-in-use':
+                  Alert.alert('使用済みメールアドレス', '入力されたメールアドレスはすでに使用されています。')
+                  break
+                case 'auth/invalid-email':
+                  Alert.alert('無効なメールアドレス', '正しい形式のメールアドレスを入力してください。')
+                  break
+                case 'auth/weak-password':
+                  Alert.alert('無効なパスワード', '６文字以上の文字列を指定してください。')
+                  break
+                default:
+                  Alert.alert('アカウントの作成に失敗しました。', '一度アプリを閉じるか、通信状況を確認してください。')
+              }
+            })
+          })
         }
-        ).catch((error) => console.error(error))
-      } catch (error: any) {
-        switch(error.code) {
-          case 'auth/email-already-in-use':
-            Alert.alert('使用済みメールアドレス', '入力されたメールアドレスはすでに使用されています。')
-            break
-          case 'auth/invalid-email':
-            Alert.alert('無効なメールアドレス', '正しい形式のメールアドレスを入力してください。')
-            break
-          case 'auth/weak-password':
-            Alert.alert('無効なパスワード', '６文字以上の文字列を指定してください。')
-            break
-          default:
-            Alert.alert('アカウントの作成に失敗しました。', '一度アプリを閉じるか、通信状況を確認してください。')
-        } 
+        catch (error) {
+          console.log(error)
+        }
       }
-    }
 
   return (
     <View style={{ flex: 1 }}>
