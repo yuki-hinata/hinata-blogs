@@ -22,6 +22,7 @@ export const RegisterScreen = ({ navigation }: Props) => {
   const [nickname, setNickname] = useState('')
   const userRef = ref(fireStorage, `user/${email}.jpg`)
 
+  // 第１の課題：pickImage内でstorageへの保存？を行っているため、アイコンボタンを押さない場合に、storage/object-not-foundを返す。でもユーザーの挙動として、「メアド間違えたから戻って変えよ」とかはあり得る気がする。
   const pickImage = async () => {
     const userIcon = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -33,10 +34,10 @@ export const RegisterScreen = ({ navigation }: Props) => {
     if (!userIcon.cancelled) {
       const response = await fetch(userIcon.uri)
       const Blob = await response.blob();
-      uploadBytes(userRef, Blob)
+      await uploadBytes(userRef, Blob)
       setDefaultIcon(userIcon.uri)
     }
-  }
+}
 
   const onChangeIcon = () =>
     ActionSheetIOS.showActionSheetWithOptions(
@@ -62,9 +63,10 @@ export const RegisterScreen = ({ navigation }: Props) => {
           xhr.open('GET', url)
           xhr.send()
           createUserWithEmailAndPassword(auth, email, password)
-            .then(() => {          addDoc(collection(db, 'users'), {
-              nickname: nickname,
-              icon: url
+            .then(() => {
+              addDoc(collection(db, 'users'), {
+                nickname: nickname,
+                icon: url
             }),
             navigation.navigate('Recommend')})
             .catch((error) => {
@@ -82,12 +84,17 @@ export const RegisterScreen = ({ navigation }: Props) => {
                   Alert.alert('アカウントの作成に失敗しました。', '一度アプリを閉じるか、通信状況を確認してください。')
               }
             })
+          }).catch((error) => {
+            switch(error.code) {
+              case 'storage/object-not-found' :
+                Alert.alert('画像の保存に失敗しました', '再度登録を行ってください。')
+            }
           })
         }
-        catch (error) {
-          console.log(error)
+        catch (error: any) {
+          Alert.alert('予期せぬエラー', '通信環境を確認してください。')
+          }
         }
-      }
 
   return (
     <View style={{ flex: 1 }}>
