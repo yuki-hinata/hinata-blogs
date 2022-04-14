@@ -5,15 +5,15 @@ import { DefaultButton } from '../../ui/defaultButton'
 import * as ImagePicker from 'expo-image-picker'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { auth, db, fireStorage } from '../../firebase'
-import { collection, addDoc } from '@firebase/firestore'
+import { collection, addDoc, serverTimestamp } from '@firebase/firestore'
 import { getDownloadURL, ref, uploadBytes } from '@firebase/storage'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 
-type Recommend = {
-  Recommend: undefined;
+type FirstJudgements = {
+  FirstJudgements: undefined;
 }
 
-type Props = NativeStackScreenProps<Recommend, 'Recommend'>
+type Props = NativeStackScreenProps<FirstJudgements, 'FirstJudgements'>
 
 export const RegisterScreen = ({ navigation }: Props) => {
   const [defaultIcon, setDefaultIcon] = useState('https://wallpaperaccess.com/full/317501.jpg')
@@ -22,7 +22,7 @@ export const RegisterScreen = ({ navigation }: Props) => {
   const [nickname, setNickname] = useState('')
   const userRef = ref(fireStorage, `user/${email}.jpg`)
 
-  // 第１の課題：pickImage内でstorageへの保存？を行っているため、アイコンボタンを押さない場合に、storage/object-not-foundを返す。でもユーザーの挙動として、「メアド間違えたから戻って変えよ」とかはあり得る気がする。
+  // メアドが使われている場合などバリデーションエラーに引っかかった場合、メアドを変更したあと再度アイコンも変えなければ、新規登録ができない。
   const pickImage = async () => {
     const userIcon = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -66,9 +66,10 @@ export const RegisterScreen = ({ navigation }: Props) => {
             .then(() => {
               addDoc(collection(db, 'users'), {
                 nickname: nickname,
-                icon: url
+                icon: url,
+                createdAt: serverTimestamp()
             }),
-            navigation.navigate('Recommend')})
+            navigation.navigate('FirstJudgements')})
             .catch((error) => {
               switch(error.code) {
                 case 'auth/email-already-in-use':
