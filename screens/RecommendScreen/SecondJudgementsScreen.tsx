@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, query, updateDoc, where, limit } from "@firebase/firestore";
+import { collection, doc, getDocs, query, where, limit } from "@firebase/firestore";
 import { orderBy, setDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
@@ -9,6 +9,7 @@ export const SecondJudgements = () => {
   const [isResultFirstAnswer, setIsResultFirstAnswer] = useState()
   const [documentId, setDocumentId] = useState('')
   const [userId, setUserId] = useState('')
+  const judgements = doc(db, 'judgements', documentId)
 
   // userId取得
   const collectUserId = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(1))
@@ -29,28 +30,24 @@ export const SecondJudgements = () => {
 
   // これはうまくいく。ドキュメントIDを直接指定しているので。なので、参照をうまくできていなかった。なので、documentIdを指定して、第３引数に代入する
   const onClickYesHandler = async () => {
-    const judgements = doc(db, 'judgements', documentId)
     await setDoc(judgements, {
       SecondAnswer: true
     }, {merge: true})
   }
 
   const onClickNoHandler = async () => {
-    const judgements = doc(db, 'judgements', documentId)
     await setDoc(judgements, {
       SecondAnswer: false
     }, {merge: true})
   }
 
   const onClickYesAnotherHandler = async () => {
-    const judgements = doc(db, 'judgements', documentId)
     await setDoc(judgements, {
       AnotherSecondAnswer: true
     }, {merge: true})
   }
 
   const onClickNoAnotherHandler = async () => {
-    const judgements = doc(db, 'judgements', documentId)
     await setDoc(judgements, {
       AnotherSecondAnswer: true
     }, {merge: true})

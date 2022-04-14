@@ -3,8 +3,7 @@ import React, { useState }  from 'react'
 import { View, Text, StyleSheet, Alert } from 'react-native'
 import { DefaultButton } from '../../ui/defaultButton'
 import { db, auth } from '../../firebase'
-import { addDoc, collection, getDoc, getDocs, limit, orderBy, query } from '@firebase/firestore'
-import { doc } from 'firebase/firestore'
+import { addDoc, collection, getDocs, limit, orderBy, query } from '@firebase/firestore'
 
 type SecondJudgements = {
   SecondJudgements: undefined;
