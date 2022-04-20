@@ -1,9 +1,9 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack'
-import React, { useState }  from 'react'
+import React from 'react'
 import { View, Text, StyleSheet, Alert } from 'react-native'
-import { DefaultButton } from '../../ui/defaultButton'
+import { DefaultButton } from '../../ui/DefaultButton'
 import { db, auth } from '../../firebase'
-import { addDoc, collection, getDocs, limit, orderBy, query } from '@firebase/firestore'
+import { addDoc, collection } from '@firebase/firestore'
 
 type SecondJudgements = {
   SecondJudgements: undefined;
@@ -11,44 +11,28 @@ type SecondJudgements = {
 
 type Props = NativeStackScreenProps<SecondJudgements, 'SecondJudgements'>
 
-export const FirstJudgements = ({ navigation } : Props) =>{
-  const [userId, setUserId] = useState('')
+export const FirstJudgements = ({ navigation } : Props) => {
   const user = auth.currentUser;
   // この時点でエラーを表示
   if (user === null) {
     Alert.alert('ユーザーが存在しません。', '再度新規登録を行ってください。')
   }
 
-  // userId取得処理
-  const collectUserId = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(1))
-  getDocs(collectUserId).then((answers) => {
-    answers.forEach((maps) => {
-      setUserId(maps.id)
-    })
-  })
-    
-  const onClickYesHandler = async () => {
+  const onClickHandler = async (firstAnswer: boolean) => {
+    const userId = user?.uid
     await addDoc(collection(db, 'judgements'), {
-      userId: userId,
-      firstAnswer: true,
+      userId,
+      firstAnswer
     })
-    .then(() => {navigation.navigate('SecondJudgements')})
-  }
-
-  const onClickNoHandler = async () => {
-    await addDoc(collection(db, 'judgements'), {
-      userId: userId,
-      firstAnswer: false,
-    })
-    .then(() => {navigation.navigate('SecondJudgements')})
+    .then(() => navigation.navigate('SecondJudgements'))
   }
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>推しメン診断画面</Text>
       <Text style={styles.text}>質問１: もしあなたが一人っ子だとしたら、妹/弟は欲しいですか？</Text>
-      <DefaultButton onPress={onClickYesHandler}>はい</DefaultButton>
-      <DefaultButton onPress={onClickNoHandler}>いいえ</DefaultButton>
+      <DefaultButton onPress={() => onClickHandler(true)}>はい</DefaultButton>
+      <DefaultButton onPress={() => onClickHandler(false)}>いいえ</DefaultButton>
     </View>
   )
 }

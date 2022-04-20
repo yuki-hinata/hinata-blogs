@@ -1,6 +1,6 @@
 import React from 'react'
 import { StyleSheet, View, Text } from 'react-native'
-import { DefaultButton } from '../../ui/defaultButton'
+import { DefaultButton } from '../../ui/DefaultButton'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 
 // undefinedを指定することで、ルートがパラメータを持たないことを意味する。

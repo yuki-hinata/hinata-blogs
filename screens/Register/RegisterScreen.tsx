@@ -1,13 +1,15 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, ActionSheetIOS, Alert } from 'react-native'
 import { Input, Image, Button } from 'native-base'
-import { DefaultButton } from '../../ui/defaultButton'
+import { DefaultButton } from '../../ui/DefaultButton'
 import * as ImagePicker from 'expo-image-picker'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { auth, db, fireStorage } from '../../firebase'
 import { collection, addDoc, serverTimestamp } from '@firebase/firestore'
 import { getDownloadURL, ref, uploadBytes } from '@firebase/storage'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import { setDoc, doc } from 'firebase/firestore'
+import { LoadingIndicator } from '../../ui/LoadingIndicator'
 
 type FirstJudgements = {
   FirstJudgements: undefined;
@@ -64,7 +66,9 @@ export const RegisterScreen = ({ navigation }: Props) => {
           xhr.send()
           createUserWithEmailAndPassword(auth, email, password)
             .then(() => {
-              addDoc(collection(db, 'users'), {
+              const user = auth.currentUser
+              const userId = user?.uid;
+              setDoc(doc(db, 'users', userId!), {
                 nickname: nickname,
                 icon: url,
                 createdAt: serverTimestamp()
@@ -109,7 +113,7 @@ export const RegisterScreen = ({ navigation }: Props) => {
         <Text style={styles.text}>アイコンの登録</Text>
     </View>
     <View style={styles.subContainer}>
-        {defaultIcon && <Image size={150} borderRadius={100} source={{ uri: defaultIcon }} alt="Default User" />}
+      {defaultIcon && <Image size={150} borderRadius={100} source={{ uri: defaultIcon }} alt="Default User" />}
     </View>
     <View style={styles.container}>
       <Button title='ChangeIcon' onPress={onChangeIcon}>アイコンを設定する</Button>

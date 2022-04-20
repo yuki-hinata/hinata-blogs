@@ -1,23 +1,25 @@
-import { collection, doc, getDocs, query, where, limit } from "@firebase/firestore";
-import { orderBy, setDoc } from "firebase/firestore";
 import React, { useState } from "react";
+import { collection, doc, getDocs, query, where, limit } from "@firebase/firestore";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { orderBy, setDoc } from "firebase/firestore";
 import { View, Text, StyleSheet } from "react-native";
-import { db } from "../../firebase";
-import { DefaultButton } from "../../ui/defaultButton";
+import { auth, db } from "../../firebase";
+import { DefaultButton } from "../../ui/DefaultButton";
+import { LoadingIndicator } from "../../ui/LoadingIndicator";
 
-export const SecondJudgements = () => {
+type ThirdJudgements = {
+  ThirdJudgements: undefined
+}
+
+type Props = NativeStackScreenProps<ThirdJudgements, 'ThirdJudgements'>
+
+export const SecondJudgements = ({ navigation }: Props) => {
   const [isResultFirstAnswer, setIsResultFirstAnswer] = useState()
   const [documentId, setDocumentId] = useState('')
-  const [userId, setUserId] = useState('')
-  const judgements = doc(db, 'judgements', documentId)
 
-  // userId取得
-  const collectUserId = query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(1))
-  getDocs(collectUserId).then((answers) => {
-    answers.forEach((maps) => {
-      setUserId(maps.id)
-    })
-  })
+  // userId 取得処理
+  const user = auth.currentUser;
+  const userId = user?.uid;
 
   // １問目の回答取得
   const findFirstAnswer = query(collection(db, 'judgements'), where('userId', '==', userId), limit(1))
@@ -28,29 +30,16 @@ export const SecondJudgements = () => {
     })
   })
 
-  // これはうまくいく。ドキュメントIDを直接指定しているので。なので、参照をうまくできていなかった。なので、documentIdを指定して、第３引数に代入する
-  const onClickYesHandler = async () => {
+  const onClickSecondHandler = async (secondAnswer: boolean) => {
+    const judgements = doc(db, 'judgements', documentId)
     await setDoc(judgements, {
-      SecondAnswer: true
+      secondAnswer
     }, {merge: true})
+    .then(() => navigation.navigate('ThirdJudgements')).catch((error) => console.error(error))
   }
 
-  const onClickNoHandler = async () => {
-    await setDoc(judgements, {
-      SecondAnswer: false
-    }, {merge: true})
-  }
-
-  const onClickYesAnotherHandler = async () => {
-    await setDoc(judgements, {
-      AnotherSecondAnswer: true
-    }, {merge: true})
-  }
-
-  const onClickNoAnotherHandler = async () => {
-    await setDoc(judgements, {
-      AnotherSecondAnswer: true
-    }, {merge: true})
+  if (isResultFirstAnswer === undefined) {
+    return <LoadingIndicator />
   }
 
   return (
@@ -59,15 +48,15 @@ export const SecondJudgements = () => {
       {isResultFirstAnswer && (
         <>
         <Text style={styles.text}>質問２: 学生時代運動部に入っていましたか？</Text>
-        <DefaultButton onPress={onClickYesHandler}>はい</DefaultButton>
-        <DefaultButton onPress={onClickNoHandler}>いいえ</DefaultButton>
+        <DefaultButton onPress={() => onClickSecondHandler(true)}>はい</DefaultButton>
+        <DefaultButton onPress={() => onClickSecondHandler(false)}>いいえ</DefaultButton>
         </>
       )}
       {!isResultFirstAnswer && (
         <>
         <Text style={styles.text}>質問2: ラーメンは好きですか？</Text>
-        <DefaultButton onPress={onClickYesAnotherHandler}>はい</DefaultButton>
-        <DefaultButton onPress={onClickNoAnotherHandler}>いいえ</DefaultButton>
+        <DefaultButton onPress={() => onClickSecondHandler(true)}>はい</DefaultButton>
+        <DefaultButton onPress={() => onClickSecondHandler(false)}>いいえ</DefaultButton>
         </>
       )}
     </View>
