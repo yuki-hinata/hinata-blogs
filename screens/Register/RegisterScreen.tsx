@@ -1,19 +1,21 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, ActionSheetIOS, Alert } from 'react-native'
 import { Input, Image, Button } from 'native-base'
-import { DefaultButton } from '../../ui/defaultButton'
+import { DefaultButton } from '../../ui/DefaultButton'
 import * as ImagePicker from 'expo-image-picker'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { auth, db, fireStorage } from '../../firebase'
-import { collection, addDoc } from '@firebase/firestore'
+import { collection, addDoc, serverTimestamp } from '@firebase/firestore'
 import { getDownloadURL, ref, uploadBytes } from '@firebase/storage'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
+import { setDoc, doc } from 'firebase/firestore'
+import { LoadingIndicator } from '../../ui/LoadingIndicator'
 
-type Recommend = {
-  Recommend: undefined;
+type FirstJudgements = {
+  FirstJudgements: undefined;
 }
 
-type Props = NativeStackScreenProps<Recommend, 'Recommend'>
+type Props = NativeStackScreenProps<FirstJudgements, 'FirstJudgements'>
 
 export const RegisterScreen = ({ navigation }: Props) => {
   const [defaultIcon, setDefaultIcon] = useState('https://wallpaperaccess.com/full/317501.jpg')
@@ -22,6 +24,7 @@ export const RegisterScreen = ({ navigation }: Props) => {
   const [nickname, setNickname] = useState('')
   const userRef = ref(fireStorage, `user/${email}.jpg`)
 
+  // メアドが使われている場合などバリデーションエラーに引っかかった場合、メアドを変更したあと再度アイコンも変えなければ、新規登録ができない。
   const pickImage = async () => {
     const userIcon = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -33,10 +36,10 @@ export const RegisterScreen = ({ navigation }: Props) => {
     if (!userIcon.cancelled) {
       const response = await fetch(userIcon.uri)
       const Blob = await response.blob();
-      uploadBytes(userRef, Blob)
+      await uploadBytes(userRef, Blob)
       setDefaultIcon(userIcon.uri)
     }
-  }
+}
 
   const onChangeIcon = () =>
     ActionSheetIOS.showActionSheetWithOptions(
@@ -62,11 +65,15 @@ export const RegisterScreen = ({ navigation }: Props) => {
           xhr.open('GET', url)
           xhr.send()
           createUserWithEmailAndPassword(auth, email, password)
-            .then(() => {          addDoc(collection(db, 'users'), {
-              nickname: nickname,
-              icon: url
+            .then(() => {
+              const user = auth.currentUser
+              const userId = user?.uid;
+              setDoc(doc(db, 'users', userId!), {
+                nickname: nickname,
+                icon: url,
+                createdAt: serverTimestamp()
             }),
-            navigation.navigate('Recommend')})
+            navigation.navigate('FirstJudgements')})
             .catch((error) => {
               switch(error.code) {
                 case 'auth/email-already-in-use':
@@ -82,12 +89,17 @@ export const RegisterScreen = ({ navigation }: Props) => {
                   Alert.alert('アカウントの作成に失敗しました。', '一度アプリを閉じるか、通信状況を確認してください。')
               }
             })
+          }).catch((error) => {
+            switch(error.code) {
+              case 'storage/object-not-found' :
+                Alert.alert('画像の保存に失敗しました', '再度登録を行ってください。')
+            }
           })
         }
-        catch (error) {
-          console.log(error)
+        catch (error: any) {
+          Alert.alert('予期せぬエラー', '通信環境を確認してください。')
+          }
         }
-      }
 
   return (
     <View style={{ flex: 1 }}>
@@ -101,7 +113,7 @@ export const RegisterScreen = ({ navigation }: Props) => {
         <Text style={styles.text}>アイコンの登録</Text>
     </View>
     <View style={styles.subContainer}>
-        {defaultIcon && <Image size={150} borderRadius={100} source={{ uri: defaultIcon }} alt="Default User" />}
+      {defaultIcon && <Image size={150} borderRadius={100} source={{ uri: defaultIcon }} alt="Default User" />}
     </View>
     <View style={styles.container}>
       <Button title='ChangeIcon' onPress={onChangeIcon}>アイコンを設定する</Button>
