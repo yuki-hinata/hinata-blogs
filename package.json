@@ -8,7 +8,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "eject": "expo eject",
-    "test": "jest --watchAll"
+    "test": "jest --watchAll",
+    "format": "rome format .",
+    "fmt": "prettier --write screens/**/*.{js,tsx,ts}"
   },
   "jest": {
     "preset": "jest-expo"
@@ -32,6 +34,7 @@
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "react-native": "0.64.3",
+    "react-native-gifted-chat": "^0.16.3",
     "react-native-safe-area-context": "3.3.2",
     "react-native-screens": "~3.10.1",
     "react-native-svg": "^12.3.0",
@@ -52,7 +55,9 @@
     "eslint-plugin-react": "^7.29.4",
     "jest": "^26.6.3",
     "jest-expo": "~44.0.1",
+    "prettier": "2.6.2",
     "react-test-renderer": "17.0.1",
+    "rome": "^0.4.2-next",
     "typescript": "4.6.3"
   },
   "private": true
