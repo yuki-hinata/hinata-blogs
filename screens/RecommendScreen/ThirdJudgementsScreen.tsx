@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   query,
   collection,
@@ -12,6 +12,8 @@ import { DefaultButton } from "../../ui/DefaultButton";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { LoadingIndicator } from "../../ui/LoadingIndicator";
 import { Route } from '../../types/Route/Route'
+import { saveThirdJudgements } from "../../modules/SaveThirdJudgements";
+import { navigateFourthJudgements } from "../../modules/NavigateFourthJudgements";
 
 type Props = NativeStackScreenProps<
   Route,
@@ -26,44 +28,48 @@ export const ThirdJudgements = ({ navigation }: Props) => {
   const user = auth.currentUser;
   const userId = user?.uid;
 
-  const findSecondAnswer = query(
-    collection(db, "judgements"),
-    where("userId", "==", userId),
-    limit(1)
-  );
-  getDocs(findSecondAnswer)
-    .then((answer) => {
-      answer.forEach((maps) => {
-        setIsResultFirstAnswer(maps.data().firstAnswer);
-        setIsResultSecondAnswer(maps.data().secondAnswer);
-        setDocumentId(maps.id);
-      });
+  useEffect(() => {
+    const findSecondAnswer = query(
+      collection(db, "judgements"),
+      where("userId", "==", userId),
+      limit(1)
+    );
+    getDocs(findSecondAnswer)
+      .then((answer) => {
+        setIsResultFirstAnswer(answer.docs[0].data().firstAnswer)
+        setIsResultSecondAnswer(answer.docs[0].data().secondAnswer)
+        setDocumentId(answer.docs[0].id)
+        // answer.forEach((maps) => {
+        //   setIsResultFirstAnswer(maps.data().firstAnswer);
+        //   setIsResultSecondAnswer(maps.data().secondAnswer);
+        //   setDocumentId(maps.id);
+        // });
+      })
+      .catch((error) => console.error(error));
+  }, [isResultFirstAnswer, isResultSecondAnswer, documentId])
+
+// TODO: ここ切り出せる
+  const saveThirdJudgement = (answer: boolean) => {
+    saveThirdJudgements({
+      navigation,
+      documentId,
+      thirdAnswer: answer
     })
-    .catch((error) => console.error(error));
+  }
 
 // TODO: ここ切り出せる
-  const onClickThirdHandler = async (thirdAnswer: boolean) => {
-    const judgements = doc(db, "judgements", documentId);
-    await setDoc(judgements, { thirdAnswer }, { merge: true }).then(() =>
-      navigation.navigate("YourRecommend")
-    );
-  };
+  const navigateFourthJudgement = (answer: boolean) => {
+    navigateFourthJudgements({
+      navigation,
+      documentId,
+      thirdAnswer: answer,
+    })
+  }
 
-// TODO: ここ切り出せる
-  const onClick = async (thirdAnswer: boolean) => {
-    const judgements = doc(db, "judgements", documentId);
-    await setDoc(judgements, { thirdAnswer }, { merge: true }).then(() =>
-      navigation.navigate("FourthJudgements")
-    );
-  };
-
-  if (isResultFirstAnswer === undefined) {
+  if (isResultFirstAnswer === undefined || isResultSecondAnswer === undefined) {
     return <LoadingIndicator />;
   }
 
-  if (isResultSecondAnswer === undefined) {
-    return <LoadingIndicator />;
-  }
   // 1問目の「はい」、２問目の「いいえ」に４番目の質問画面に遷移するように実装。
   return (
     <View style={styles.container}>
@@ -73,10 +79,10 @@ export const ThirdJudgements = ({ navigation }: Props) => {
           <Text style={styles.text}>
             質問3: 身近な人から計算高い性格だと言われたことはありますか？
           </Text>
-          <DefaultButton onPress={() => onClick(true)}>はい</DefaultButton>
+          <DefaultButton onPress={() => navigateFourthJudgement(true)}>はい</DefaultButton>
           <DefaultButton
             onPress={() => {
-              onClickThirdHandler(false);
+              saveThirdJudgement(false);
             }}
           >
             いいえ
@@ -88,10 +94,10 @@ export const ThirdJudgements = ({ navigation }: Props) => {
           <Text style={styles.text}>
             質問3: パンダになりたいと感じたことはありますか？
           </Text>
-          <DefaultButton onPress={() => onClickThirdHandler(true)}>
+          <DefaultButton onPress={() => saveThirdJudgement(true)}>
             はい
           </DefaultButton>
-          <DefaultButton onPress={() => onClick(false)}>いいえ</DefaultButton>
+          <DefaultButton onPress={() => navigateFourthJudgement(false)}>いいえ</DefaultButton>
         </>
       )}
       {!isResultFirstAnswer && isResultSecondAnswer && (
@@ -99,10 +105,10 @@ export const ThirdJudgements = ({ navigation }: Props) => {
           <Text style={styles.text}>
             質問3: カラオケで90点以上を取ったことがありますか？
           </Text>
-          <DefaultButton onPress={() => onClickThirdHandler(true)}>
+          <DefaultButton onPress={() => saveThirdJudgement(true)}>
             はい
           </DefaultButton>
-          <DefaultButton onPress={() => onClickThirdHandler(false)}>
+          <DefaultButton onPress={() => saveThirdJudgement(false)}>
             いいえ
           </DefaultButton>
         </>
@@ -112,10 +118,10 @@ export const ThirdJudgements = ({ navigation }: Props) => {
           <Text style={styles.text}>
             質問3: 源氏物語と枕草子、読むとしたらどっち？
           </Text>
-          <DefaultButton onPress={() => onClickThirdHandler(true)}>
+          <DefaultButton onPress={() => saveThirdJudgement(true)}>
             源氏物語
           </DefaultButton>
-          <DefaultButton onPress={() => onClickThirdHandler(false)}>
+          <DefaultButton onPress={() => saveThirdJudgement(false)}>
             枕草子
           </DefaultButton>
         </>

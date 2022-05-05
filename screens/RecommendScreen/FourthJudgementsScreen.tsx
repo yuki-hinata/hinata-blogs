@@ -1,12 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   query,
   collection,
   limit,
   getDocs,
   where,
-  doc,
-  setDoc,
 } from "firebase/firestore";
 import { View, Text, StyleSheet } from "react-native";
 import { auth, db } from "../../firebase";
@@ -14,58 +12,46 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { DefaultButton } from "../../ui/DefaultButton";
 import { LoadingIndicator } from "../../ui/LoadingIndicator";
 import { Route } from '../../types/Route/Route';
+import { saveFourthJudgements } from '../../modules/SaveFourthJudgements'
 
 type Props = NativeStackScreenProps<Route, "YourRecommend">;
 
 export const FourthJudgements = ({ navigation }: Props) => {
-  const [isResultFirstAnswer, setIsResultFirstAnswer] = useState();
-  const [isResultSecondAnswer, setIsResultSecondAnswer] = useState();
-  const [isResultThirdAnswer, setIsResultThirdAnswer] = useState();
+  const [isResultFirstAnswer, setIsResultFirstAnswer] = useState<boolean>();
+  const [isResultSecondAnswer, setIsResultSecondAnswer] = useState<boolean>();
+  const [isResultThirdAnswer, setIsResultThirdAnswer] = useState<boolean>();
   const [documentId, setDocumentId] = useState("");
 
   const user = auth.currentUser;
   const userId = user?.uid;
 
-  const findUsersAnswer = query(
-    collection(db, "judgements"),
-    where("userId", "==", userId),
-    limit(1)
-  );
-  getDocs(findUsersAnswer).then((answer) => {
-    // 1つしか無いのにforEach使っているのおかしい
-    // answer.forEach((maps) => {
-    //   setIsResultFirstAnswer(maps.data().firstAnswer);
-    //   setIsResultSecondAnswer(maps.data().secondAnswer);
-    //   setIsResultThirdAnswer(maps.data().thirdAnswer);
-    //   setDocumentId(maps.id);
-    // });
-    if (answer.empty || answer.docs.length >= 2) {
-      // ここで例外を投げる？的な
-      return
-    }
-      setIsResultFirstAnswer(answer.docs[0].data().firstAnswer);
-      setIsResultSecondAnswer(answer.docs[0].data().secondAnswer);
-      setIsResultThirdAnswer(answer.docs[0].data().thirdAnswer);
-      setDocumentId(answer.docs[0].id);
-  });
-
-  const onClickFourthHandler = async (fourthAnswer: boolean) => {
-    const judgementsId = doc(db, "judgements", documentId);
-    await setDoc(judgementsId, { fourthAnswer }, { merge: true }).then(() =>
-      navigation.navigate("YourRecommend")
+  useEffect(() => {
+    const findUsersAnswer = query(
+      collection(db, "judgements"),
+      where("userId", "==", userId),
+      limit(1)
     );
-  };
+    getDocs(findUsersAnswer).then((answer) => {
+      if (answer.empty || answer.docs.length >= 2) {
+        // ここで例外を投げる？的な
+        return
+      }
+        setDocumentId(answer.docs[0].id);
+        setIsResultFirstAnswer(answer.docs[0].data().firstAnswer);
+        setIsResultSecondAnswer(answer.docs[0].data().secondAnswer);
+        setIsResultThirdAnswer(answer.docs[0].data().thirdAnswer);
+    });
+  }, [isResultFirstAnswer, isResultSecondAnswer, isResultThirdAnswer])
 
-// ここのif文は1つにできるはず
-  if (isResultFirstAnswer === undefined) {
-    return <LoadingIndicator />;
+  const onClickFourthHandler = (answer: boolean) => {
+    saveFourthJudgements({
+      navigation,
+      documentId,
+      fourthAnswer: answer
+    })
   }
 
-  if (isResultSecondAnswer === undefined) {
-    return <LoadingIndicator />;
-  }
-
-  if (isResultThirdAnswer === undefined) {
+  if (isResultFirstAnswer === undefined || isResultSecondAnswer === undefined || isResultThirdAnswer === undefined) {
     return <LoadingIndicator />;
   }
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { query, collection, where, limit, getDocs } from "firebase/firestore";
 import { auth, db } from "../../firebase";
 import { Alert } from "react-native";
@@ -9,15 +9,12 @@ import { YourRecommend } from "./YourRecommend";
 import { LoadingIndicator } from "../../ui/LoadingIndicator";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-
-
 type Props = NativeStackScreenProps<
   Route,
   "FirstJudgements" | "ConfirmChat"
 >;
 
 export const YourRecommendScreen = ({ navigation }: Props) => {
-  // useState
   const [isResultFirstAnswer, setIsResultFirstAnswer] = useState<boolean>();
   const [isResultSecondAnswer, setIsResultSecondAnswer] = useState<boolean>();
   const [isResultThirdAnswer, setIsResultThirdAnswer] = useState<boolean>();
@@ -28,22 +25,24 @@ export const YourRecommendScreen = ({ navigation }: Props) => {
   const userId = user?.uid;
 
   // userの解答をすべて取得。
-  const findAllAnswer = query(
-    collection(db, "judgements"),
-    where("userId", "==", userId),
-    limit(1)
-  );
-  getDocs(findAllAnswer)
-    .then((answer) => {
-      // ここも同様に改善できるのでやってみること！
-      answer.forEach((maps) => {
-        setIsResultFirstAnswer(maps.data().firstAnswer);
-        setIsResultSecondAnswer(maps.data().secondAnswer);
-        setIsResultThirdAnswer(maps.data().thirdAnswer);
-        setIsResultFourthAnswer((maps.data().fourthAnswer ??= false));
-      });
-    })
-    .catch((error) => console.error(error));
+  useEffect(() => {
+    const findAllAnswer = query(
+      collection(db, "judgements"),
+      where("userId", "==", userId),
+      limit(1)
+    );
+    getDocs(findAllAnswer)
+      .then((answer) => {
+        if (answer.empty) {
+          return
+        }
+        setIsResultFirstAnswer(answer.docs[0].data().firstAnswer)
+        setIsResultSecondAnswer(answer.docs[0].data().secondAnswer)
+        setIsResultThirdAnswer(answer.docs[0].data().thirdAnswer)
+        setIsResultFourthAnswer(answer.docs[0].data().fourthAnswer ??= false)
+      })
+      .catch((error) => console.error(error));
+  }, [isResultFirstAnswer, isResultSecondAnswer, isResultThirdAnswer, isResultForthAnswer])
 
   const againJudgements = () => {
     Alert.alert(

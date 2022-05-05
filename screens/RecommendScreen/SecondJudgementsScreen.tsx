@@ -1,24 +1,23 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   collection,
-  doc,
   getDocs,
   query,
   where,
   limit,
 } from "@firebase/firestore";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { setDoc } from "firebase/firestore";
 import { View, Text, StyleSheet } from "react-native";
 import { auth, db } from "../../firebase";
 import { DefaultButton } from "../../ui/DefaultButton";
 import { LoadingIndicator } from "../../ui/LoadingIndicator";
 import { Route } from '../../types/Route/Route';
+import { saveSecondJudgements } from "../../modules/SaveSecondJudgements";
 
 type Props = NativeStackScreenProps<Route, "ThirdJudgements">;
 
 export const SecondJudgements = ({ navigation }: Props) => {
-  const [isResultFirstAnswer, setIsResultFirstAnswer] = useState();
+  const [isResultFirstAnswer, setIsResultFirstAnswer] = useState<boolean>();
   const [documentId, setDocumentId] = useState("");
 
   // userId 取得処理
@@ -26,24 +25,25 @@ export const SecondJudgements = ({ navigation }: Props) => {
   const userId = user?.uid;
 
   // １問目の回答取得
-  const findFirstAnswer = query(
-    collection(db, "judgements"),
-    where("userId", "==", userId),
-    limit(1)
-  );
-  getDocs(findFirstAnswer).then((answer) => {
-    answer.forEach((maps) => {
-      setIsResultFirstAnswer(maps.data().firstAnswer);
-      setDocumentId(maps.id);
+  useEffect(() => {
+    const findFirstAnswer = query(
+      collection(db, "judgements"),
+      where("userId", "==", userId),
+      limit(1)
+    );
+    getDocs(findFirstAnswer).then((answer) => {
+      setIsResultFirstAnswer(answer.docs[0].data().firstAnswer)
+      setDocumentId(answer.docs[0].id)
     });
-  });
+  }, [])
 
-  const onClickSecondHandler = async (secondAnswer: boolean) => {
-    const judgements = doc(db, "judgements", documentId);
-    await setDoc(judgements, { secondAnswer }, { merge: true })
-      .then(() => navigation.navigate("ThirdJudgements"))
-      .catch((error) => console.error(error));
-  };
+  const onClickSecondHandler = (answer: boolean) => {
+    saveSecondJudgements({
+      secondAnswer: answer,
+      navigation,
+      documentId,
+    })
+  }
 
   if (isResultFirstAnswer === undefined) {
     return <LoadingIndicator />;

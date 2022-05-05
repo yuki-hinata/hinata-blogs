@@ -1,5 +1,4 @@
 import {
-  getDoc,
   doc,
   query,
   collection,
@@ -12,9 +11,9 @@ import {
   setDoc,
 } from "firebase/firestore";
 import React, { useState, useCallback, useEffect } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { Actions, Bubble, GiftedChat, IMessage, Send, User, SystemMessage, Message } from "react-native-gifted-chat";
+import { Actions, GiftedChat, IMessage, User } from "react-native-gifted-chat";
 import { auth, db, fireStorage } from "../../firebase";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import "dayjs/locale/ja";
@@ -28,7 +27,7 @@ import { LoadingIndicator } from "../../ui/LoadingIndicator";
 import { useUserNickname } from "../../hooks/chat/useUserNickname";
 import { useEnterTime } from "../../hooks/chat/useEnterTime";
 import { MessageBubble } from '../../components/Chat/MessageBubble';
-import { useOnSend } from '../../hooks/chat/useOnSend';
+// import { onSend } from '../../hooks/chat/useOnSend';
 import { ChatSendButton } from '../../ui/ChatSendButton';
 import { GenerateUuid } from '../../modules/GenerateUuid'
 
@@ -78,15 +77,17 @@ export const Chat = ({ navigation, route }: Props) => {
   const chatIconRef = ref(fireStorage, `messages/${GenerateUuid}.jpg`)
 
   // 以下の処理はuseEffect内に入れるかな
-  const docs = query(
-    collection(db, "YourRecommend"),
-    where("userIds", "array-contains", userId)
-  );
-  getDocs(docs).then((names) => {
-    names.forEach((name) => {
-      setName(name.data().name);
+  useEffect(() => {
+    const docs = query(
+      collection(db, "YourRecommend"),
+      where("userIds", "array-contains", userId)
+    );
+    getDocs(docs).then((names) => {
+      names.forEach((name) => {
+        setName(name.data().name);
+      });
     });
-  });
+  }, [])
 
   // システムメッセージの表示の下地。一旦無視
   // useEffect(() => {
@@ -175,6 +176,17 @@ export const Chat = ({ navigation, route }: Props) => {
 
   const onPressActionButton = () => displayActionSheet(pickImage)
 
+  const onSend = useCallback((messages: IMessage[]) => {    
+      const { _id, createdAt ,text, user } = messages[0];
+      setDoc(doc(db, "messages", String(_id)), {
+        _id,
+        createdAt,
+        text,
+        user,
+        roomId: route.params?.roomId,
+      });
+    }, []);
+
   const onPressAvatar = async (props: User) => {
     const avatarUserId = props._id;
     const findEqualUserId = query(collection(db, 'messages'), where('user._id', '==', avatarUserId))
@@ -188,7 +200,7 @@ export const Chat = ({ navigation, route }: Props) => {
     <GiftedChat
       messages={messages}
       placeholder='メッセージを入力'
-      onSend={useOnSend}
+      onSend={onSend}
       showUserAvatar={true}
       renderSend={ChatSendButton}
       renderBubble={MessageBubble}
@@ -209,11 +221,3 @@ export const Chat = ({ navigation, route }: Props) => {
       />
   );
 };
-
-const styles = StyleSheet.create({
-  sendButton: {
-    marginBottom: 10,
-    marginRight: 8,
-    color: '#3CD9D9'
-  }
-})
