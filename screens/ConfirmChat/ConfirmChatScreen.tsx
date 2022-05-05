@@ -1,7 +1,7 @@
 import { collection, doc, getDocs, query, serverTimestamp, setDoc, where } from "@firebase/firestore";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { addDoc } from "firebase/firestore";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { auth, db } from "../../firebase";
 import { DefaultButton } from "../../ui/DefaultButton";
@@ -13,16 +13,18 @@ type Props = NativeStackScreenProps<Route, "Chat">;
 export const ConfirmChat = ({ navigation }: Props) => {
   const [id, setId] = useState<string>("");
 
-  const roomsDocIdRef = query(
-    collection(db, "Rooms"),
-    where("userIds", "array-contains", String(auth.currentUser?.uid))
-  );
-// TODO: ここ切り出せる
-  getDocs(roomsDocIdRef).then((documentId) => {
-    documentId.docs.map((doc) => {
-      setId(doc.id);
+  useEffect(() => {
+    const roomsDocIdRef = query(
+      collection(db, "Rooms"),
+      where("userIds", "array-contains", String(auth.currentUser?.uid))
+    );
+  // TODO: ここ切り出せる
+    getDocs(roomsDocIdRef).then((documentId) => {
+      documentId.docs.map((doc) => {
+        setId(doc.id);
+      });
     });
-  });
+  }, [id])
 
   // ここは今後userが推しメンを複数持てるようになっても、対応可能だと思う。
   const enterRoomTime = async () => {
