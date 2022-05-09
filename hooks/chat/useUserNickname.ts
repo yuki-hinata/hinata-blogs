@@ -10,6 +10,7 @@ export const useUserNickname = () => {
   const usersRef = doc(db, "users", String(userId));
 
   useEffect(() => {
+    console.log('useuserNicknameの下')
     const findUserInfo = getDoc(usersRef);
     findUserInfo.then((user) => {
       setNickname(user.data()!.nickname); // 唯一setNickNameが呼ばれている

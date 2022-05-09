@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import { DefaultButton } from "../../ui/DefaultButton";
 import { images } from "../../assets/index";
 import { Image } from "native-base";
-import { arrayUnion, doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { arrayUnion, doc, setDoc } from "firebase/firestore";
 import { auth, db } from "../../firebase";
 
 type Props = {
@@ -19,16 +19,17 @@ export const YourRecommend: React.FC<Props> = (props) => {
   const userId = user?.uid;
 
   const decideRecommendMan = async () => {
+    console.log('YourRecommendの中')
     const RecommendRef = doc(db, "YourRecommend", String(props.id));
     const RoomsRef = doc(db, "Rooms", String(props.id));
     await setDoc(
       RecommendRef,
-      { userIds: arrayUnion(userId), name: props.name },
+      { userIds: arrayUnion(userId), name: props.name, handleName: props.handleName },
       { merge: true }
     );
     await setDoc(
       RoomsRef,
-      { userIds: arrayUnion(userId), addTime: serverTimestamp() },
+      { userIds: arrayUnion(userId) },
       { merge: true }
     ).then(() => {
       props.navigateChatConfirm();

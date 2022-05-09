@@ -7,6 +7,7 @@ export const useEnterTime = () => {
   const userId = auth.currentUser?.uid
 
   useEffect(() => {
+    console.log('useenterTimeの下')
     const addTimer = async () => {
       const fetchEnterRoomTime = query(
         collection(db, 'enterRoomTime'),
@@ -19,7 +20,7 @@ export const useEnterTime = () => {
       })
     }
     addTimer()
-  }, [addTime])
+  }, [])
 
   return {
     addTime
