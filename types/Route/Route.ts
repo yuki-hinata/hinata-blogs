@@ -7,5 +7,7 @@ export type Route = {
   FourthJudgements: undefined;
   YourRecommend: undefined;
   ConfirmChat: undefined;
-  Chat: undefined | { roomId: string };
+  Chat: undefined | { roomId: string | undefined};
+  RoomList: undefined | { roomId: string | undefined };
+  TabNavigator: undefined | { roomId: string | undefined };
 }

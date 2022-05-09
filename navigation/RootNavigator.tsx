@@ -10,10 +10,22 @@ import { FourthJudgements } from "../screens/RecommendScreen/FourthJudgementsScr
 import { YourRecommendScreen } from "../screens/YourRecommend/YourRecommendScreen";
 import { ConfirmChat } from "../screens/ConfirmChat/ConfirmChatScreen";
 import { Chat } from "../screens/Chat/ChatScreen";
+import { RoomList } from "../screens/RoomList/RoomList";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+const TabNavigator = () => {
+  return (
+    <Tab.Navigator>
+      <Tab.Screen name="RoomList" component={RoomList} />
+    </Tab.Navigator>
+  )
+}
 
 export const RootNavigator = () => {
+  // headerの戻るボタンを消してしまいたい場合、headerBackVisibleを使う。
 	return (
 		<NavigationContainer>
       <Stack.Navigator initialRouteName='Top'>
@@ -26,6 +38,8 @@ export const RootNavigator = () => {
         <Stack.Screen name='YourRecommend' component={YourRecommendScreen} options={{ headerShown: false, gestureEnabled: false }} />
         <Stack.Screen name='ConfirmChat' component={ConfirmChat} options={{ headerShown: false, gestureEnabled: false }} />
         <Stack.Screen name='Chat' component={Chat} options={{ gestureEnabled: false }} />
+        <Stack.Screen name='RoomList' component={RoomList} options={{ headerTitle: 'ルーム一覧', gestureEnabled: false, headerBackVisible: false}} />
+        <Stack.Screen name="TabNavigator" component={TabNavigator} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
 	);

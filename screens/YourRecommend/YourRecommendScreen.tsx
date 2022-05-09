@@ -15,6 +15,7 @@ type Props = NativeStackScreenProps<
 >;
 
 export const YourRecommendScreen = ({ navigation }: Props) => {
+  console.log('一番外')
   const [isResultFirstAnswer, setIsResultFirstAnswer] = useState<boolean>();
   const [isResultSecondAnswer, setIsResultSecondAnswer] = useState<boolean>();
   const [isResultThirdAnswer, setIsResultThirdAnswer] = useState<boolean>();
@@ -26,6 +27,7 @@ export const YourRecommendScreen = ({ navigation }: Props) => {
 
   // userの解答をすべて取得。
   useEffect(() => {
+    console.log('userの解答をすべて取得');
     const findAllAnswer = query(
       collection(db, "judgements"),
       where("userId", "==", userId),
