@@ -3,8 +3,8 @@ import { Image } from "native-base";
 import React from "react"
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native"
 import { images } from "../../assets";
-import { useRoomInfo } from "../../hooks/roomLsit/useRoomInfo";
-import { useRoomName } from "../../hooks/roomLsit/useRoomName";
+import { useRoomInfo } from "../../hooks/roomList/useRoomInfo";
+import { useRoomName } from "../../hooks/roomList/useRoomName";
 import { GenerateUuid } from "../../modules/GenerateUuid";
 
 // components
