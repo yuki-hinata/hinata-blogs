@@ -1,68 +1,57 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image } from "native-base";
 import React from "react"
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native"
-import { images } from "../../assets";
-import { useRoomInfo } from "../../hooks/roomList/useRoomInfo";
-import { useRoomName } from "../../hooks/roomList/useRoomName";
-import { GenerateUuid } from "../../modules/GenerateUuid";
+import { View, StyleSheet, SafeAreaView } from "react-native"
+import { ListItem } from 'react-native-elements'
 
 // components
+import { images } from "../../assets";
 import { Route } from "../../types/Route/Route"
 import { LoadingIndicator } from "../../ui/LoadingIndicator";
+import { Header } from "../../ui/Header";
+import { useRoomListItem } from "../../hooks/roomListItem/useRoomListItem";
 
-type Props = NativeStackScreenProps<Route, 'RoomList' | 'Chat'>;
+import { auth } from "../../firebase/firebase";
 
-type List = {
-  name: string,
-  id: string,
-  groupNumber: string
-} 
-export const RoomList = ({ route, navigation }: Props) => {
-  const roomId = route.params?.roomId;
-  const autoId = GenerateUuid()
-  console.log(roomId)
 
-  const {
-    name,
-    handleName
-  } = useRoomName(roomId)
+type Props = NativeStackScreenProps<Route, 'Chat'>;
+
+export const RoomList = ({ navigation }: Props) => {
+  // roomListまでは表示できている。その後の切り出したnameとかを取ってくる処理で落ちている。というかファイル内を変更し、保存するとレンダリングされる
+  const userId = auth.currentUser?.uid;
 
   const {
-    groupNumber
-  } = useRoomInfo(roomId)
+    roomListItem,
+    loading
+  } = useRoomListItem();
 
-    const list: List[] = [
-      {
-        id: autoId,
-        name,
-        groupNumber
-      }
-    ]
+  const navigateChatScreen = (id: string) => {
+    navigation.navigate('Chat', {
+      roomId: id
+    })
+  }
 
-    const onPress = () => {
-      navigation.navigate('Chat', {
-        roomId: route.params?.roomId
-      })
-    }
-
-    if (!handleName || !groupNumber) {
-      return <LoadingIndicator />
-    }
-
-    const roomList = ({ item }: { item: List }) => {
-      return (
-        <TouchableOpacity onPress={onPress} style={styles.item}>
-          <Image size={60} borderRadius={100} margin={2} source={images.icon[handleName]} alt='No Image' />
-          <Text style={styles.roomTitle}>{`${item.name}のルーム`}</Text>
-          <Text style={styles.roomNumber}>{`（${item.groupNumber}）`}</Text>
-        </TouchableOpacity>
-      )
-    }
+  if (!loading) {
+    return <LoadingIndicator />
+  }
 
   return (
     <View style={styles.container}>
-      <FlatList data={list} renderItem={roomList} keyExtractor={items => items.id} />
+      <SafeAreaView>
+        <Header title="ルーム一覧" /> 
+      </SafeAreaView>
+      <View>
+      {
+        roomListItem.map((list, index) => (
+          <ListItem key={index} onPress={() => navigateChatScreen(list.id)} bottomDivider>
+            <Image size={70} borderRadius={100} margin={2} source={images.icon[list.handleName]} alt='No Image' />
+            <ListItem.Content>
+              <ListItem.Title style={styles.roomTitle}>{`${list.name}のチャットルーム (${list.memberCount})`}</ListItem.Title>
+            </ListItem.Content>
+          </ListItem>
+          ))
+        }
+      </View>
     </View>
   )
 }
@@ -80,8 +69,6 @@ const styles = StyleSheet.create({
   roomTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    paddingLeft: 16,
-    paddingTop: 8
   },
   roomNumber: {
     fontSize: 18,

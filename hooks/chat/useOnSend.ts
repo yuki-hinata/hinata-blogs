@@ -1,7 +1,7 @@
 import { doc, setDoc } from "firebase/firestore";
 import { useCallback } from "react";
 import { IMessage } from "react-native-gifted-chat";
-import { db } from "../../firebase";
+import { db } from "../../firebase/firebase";
 import { RouteProp, useRoute } from "@react-navigation/native";
 import { Route } from "../../types/Route/Route";
 

@@ -1,7 +1,7 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { doc, setDoc } from "firebase/firestore";
 import { Route } from "../../types/Route/Route";
-import { db } from "../../firebase";
+import { db } from "../../firebase/firebase";
 
 type Props = {
   secondAnswer: boolean;

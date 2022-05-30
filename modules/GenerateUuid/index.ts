@@ -1,4 +1,4 @@
-export const GenerateUuid = () => {
+export const generateUuid = () => {
   const chars = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".split("");
   for (let i = 0, len = chars.length; i < len; i++) {
     switch (chars[i]) {

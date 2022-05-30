@@ -1,25 +1,46 @@
 import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { auth, db } from "../../firebase";
+import { auth, db } from "../../firebase/firebase";
 
-export const useUserNickname = () => {
+type UseUserNickname = () => {
+  data: undefined
+  loading: true
+} | {
+  data: {
+    icon: string
+    nickname: string
+  }
+  loading: false
+}
+export const useUserNickname: UseUserNickname = () => {
   const user = auth.currentUser;
   const userId = user?.uid;
-  const [nickname, setNickname] = useState<string>(""); // これは消せる
+  const [nickname, setNickname] = useState<string>(); // これは消せる
   const [icon, setIcon] = useState<string>();
   const usersRef = doc(db, "users", String(userId));
 
   useEffect(() => {
-    console.log('useuserNicknameの下')
     const findUserInfo = getDoc(usersRef);
     findUserInfo.then((user) => {
       setNickname(user.data()!.nickname); // 唯一setNickNameが呼ばれている
       setIcon(user.data()!.icon);
-    });
+    }).catch((error) => {
+      console.error(error);
+    })
   }, [])
 
+  if (!icon || !nickname) {
+    return {
+      data: undefined,
+      loading: true
+    }
+  }
+
   return {
-    icon,
-    nickname
+    data: {
+      icon,
+      nickname
+    },
+    loading: false
   }
 }

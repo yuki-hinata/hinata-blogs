@@ -8,7 +8,7 @@ import {
 } from "@firebase/firestore";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { View, Text, StyleSheet } from "react-native";
-import { auth, db } from "../../firebase";
+import { auth, db } from "../../firebase/firebase";
 import { DefaultButton } from "../../ui/DefaultButton";
 import { LoadingIndicator } from "../../ui/LoadingIndicator";
 import { Route } from '../../types/Route/Route';

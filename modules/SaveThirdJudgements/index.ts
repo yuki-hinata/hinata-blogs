@@ -1,6 +1,6 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { doc, setDoc } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../../firebase/firebase";
 import { Route } from '../../types/Route/Route'
 
 type Props = {

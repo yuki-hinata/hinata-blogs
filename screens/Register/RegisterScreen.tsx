@@ -1,16 +1,19 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, Alert } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, Alert, ScrollView } from "react-native";
 import { Input, Image, Button } from "native-base";
 import { DefaultButton } from "../../ui/DefaultButton";
 import * as ImagePicker from "expo-image-picker";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth, db, fireStorage } from "../../firebase";
+import { auth, db, fireStorage } from "../../firebase/firebase";
 import { serverTimestamp } from "@firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "@firebase/storage";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { setDoc, doc } from "firebase/firestore";
 import { displayActionSheet } from "../../modules/images/displayActionSheet";
 import { Route } from '../../types/Route/Route'
+import { createExpoPushToken } from "../../modules/CreateExpoPushToken";
+import { generateUuid } from "../../modules/GenerateUuid";
+import { imagePicker } from '../../modules/ImagePicker'
 
 type Props = NativeStackScreenProps<Route, "FirstJudgements">;
 
@@ -21,46 +24,55 @@ export const RegisterScreen = ({ navigation }: Props) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState("");
-  // 大きな課題を孕んでいる。これではユーザーの意図していない画像が表示されてしまう可能性がある(2回目)。改善が必要。
+  const [token, setToken] = useState<any>('')
+  const autoId = generateUuid()
   const userRef = ref(fireStorage, `user/${email}.jpg`);
 
   // メアドが使われている場合などバリデーションエラーに引っかかった場合、メアドを変更したあと再度アイコンも変えなければ、新規登録ができない。
   const pickImage = async () => {
-    // ここから↓5行ほど切り出し可能
-    const userIcon = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0,
-      allowsEditing: true,
-    });
-
-    // 途中でキャンセル処理が行われなかった場合、写真が更新される。
-    if (!userIcon.cancelled) {
-      const response = await fetch(userIcon.uri);
-      const Blob = await response.blob();
-      await uploadBytes(userRef, Blob);
-      setDefaultIcon(userIcon.uri);
-    }
+    await imagePicker(userRef)
+    await getDownloadURL(userRef)
+      .then((url) => {
+        console.log(url)
+        setDefaultIcon(url)
+      })
   };
+
+  useEffect(() => {
+    createExpoPushToken().then((token) => {
+      setToken(token)
+    })
+  }, [])
 
 // ここの関数も切り出し可能
   const onChangeIcon = () => displayActionSheet(pickImage)
 
+  // resetのindexにはどの程度前のStackを消すかを設定する。
   const handleSubmit = async () => {
     try {
+      // なぜここでgetDownLoadしているかというとurlがほしいから。
       await getDownloadURL(userRef)
         .then((url) => {
           createUserWithEmailAndPassword(auth, email, password)
             .then(() => {
-              const user = auth.currentUser;
-              const userId = user?.uid;
-              setDoc(doc(db, "users", userId!), {
+              // authでuidを生成しているので、この中でuidを取得しなければundefinedになる。
+              const userId = auth.currentUser?.uid;
+              setDoc(doc(db, "users", String(userId)), {
                 nickname: nickname,
-                icon: url,
+                icon: defaultIcon,
                 createdAt: serverTimestamp(),
-              }),
-                navigation.navigate("FirstJudgements");
+                expoPushToken: token.token
+              }, { merge: true }),
+              navigation.reset({
+                index: 1,
+                routes: [{ name: 'JudgementsNavigator' }],
+              })
+              navigation.navigate('JudgementsNavigator', {
+                screen: 'FirstJudgements'
+              })
             })
             .catch((error) => {
+              console.error(error)
               switch (error.code) {
                 case "auth/email-already-in-use":
                   Alert.alert(
@@ -92,8 +104,8 @@ export const RegisterScreen = ({ navigation }: Props) => {
           switch (error.code) {
             case "storage/object-not-found":
               Alert.alert(
-                "画像の保存に失敗しました",
-                "再度登録を行ってください。"
+                "アイコンの保存に失敗しました",
+                "再度アイコンの設定をしてください。"
               );
           }
         });
@@ -103,7 +115,7 @@ export const RegisterScreen = ({ navigation }: Props) => {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <ScrollView style={{ flex: 1 }}>
       <View style={styles.container}>
         <Text style={styles.text}>メールアドレス</Text>
         <Input
@@ -141,7 +153,7 @@ export const RegisterScreen = ({ navigation }: Props) => {
           <DefaultButton onPress={handleSubmit}>登録する</DefaultButton>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

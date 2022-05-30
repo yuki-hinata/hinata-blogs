@@ -1,40 +1,18 @@
-import { collection, doc, getDocs, query, serverTimestamp, setDoc, where } from "@firebase/firestore";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { addDoc } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { auth, db } from "../../firebase";
 import { DefaultButton } from "../../ui/DefaultButton";
 import { CHAT_EXPLAIN } from "./ChatExplain";
 import { Route } from '../../types/Route/Route';
+import { Confirm } from "../../modules/confirm";
 
-type Props = NativeStackScreenProps<Route, "Chat">;
+type Props = NativeStackScreenProps<Route, 'SecondYourRecommendScreen'>;
 
-export const ConfirmChat = ({ navigation }: Props) => {
-  const [id, setId] = useState<string>("");
+export const ConfirmChat = ({ navigation, route }: Props) => {
+  console.log('roomIdの上');
+  console.log(route.params?.id);
 
-  useEffect(() => {
-    const roomsDocIdRef = query(
-      collection(db, "Rooms"),
-      where("userIds", "array-contains", String(auth.currentUser?.uid))
-    );
-  // TODO: ここ切り出せる
-    getDocs(roomsDocIdRef).then((documentId) => {
-      documentId.docs.map((doc) => {
-        setId(doc.id);
-      });
-    });
-  }, [id])
-
-  // ここは今後userが推しメンを複数持てるようになっても、対応可能だと思う。
-  const enterRoomTime = async () => {
-    await addDoc(collection(db, 'enterRoomTime'), {
-      userId: auth.currentUser?.uid,
-      roomId: id,
-      createdAt: serverTimestamp(),
-    })
-  }
-
+  // roomIdを配列で取ってこれるようにした。
   return (
     <>
       <View style={styles.container}>
@@ -45,10 +23,10 @@ export const ConfirmChat = ({ navigation }: Props) => {
         </View>
         <DefaultButton
           onPress={() => {
-            enterRoomTime(),
-            navigation.navigate("Chat", {
-              roomId: id,
-            });
+            Confirm(),
+            navigation.navigate('Chat', {
+              roomId: route.params?.id
+            })
           }}
         >
           チャット部屋に入室する
