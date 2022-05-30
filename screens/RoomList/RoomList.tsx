@@ -4,7 +4,6 @@ import React from "react"
 import { View, StyleSheet, SafeAreaView } from "react-native"
 import { ListItem } from 'react-native-elements'
 
-
 // components
 import { images } from "../../assets";
 import { Route } from "../../types/Route/Route"
