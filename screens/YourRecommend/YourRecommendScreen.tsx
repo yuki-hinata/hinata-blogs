@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { query, collection, where, limit, getDocs } from "firebase/firestore";
-import { auth, db } from "../../firebase";
+import { auth, db } from "../../firebase/firebase";
 import { Alert } from "react-native";
 import { Route } from '../../types/Route/Route';
 
@@ -62,8 +62,10 @@ export const YourRecommendScreen = ({ navigation }: Props) => {
     );
   };
 
-  const navigateChatConfirm = () => {
-    navigation.navigate("ConfirmChat");
+  const navigateChatConfirm = (id: string) => {
+    navigation.navigate('SecondYourRecommendScreen', {
+      id
+    });
   };
 
   if (
@@ -100,13 +102,10 @@ const YourRecommendPresentation = ({
   isResultThirdAnswer: boolean;
   isResultForthAnswer: boolean;
   againJudgements: () => void;
-  navigateChatConfirm: () => void;
+  navigateChatConfirm: (id: string) => void;
 }) => {
   const getRecommend = () => {
     if (!isResultFirstAnswer && isResultSecondAnswer && isResultThirdAnswer) {
-      // setRecommendName('齊藤京子')
-      // setRecommendNumber(0)
-      // setHandleName('kyouko')
       return {
         name: "齊藤京子",
         id: 0,
@@ -179,7 +178,7 @@ const YourRecommendPresentation = ({
   return (
     <YourRecommend
       // {...getRecommend()}
-      id={getRecommend().id}
+      id={String(getRecommend().id)}
       handleName={getRecommend().handleName}
       name={getRecommend().name}
       againJudgements={againJudgements}

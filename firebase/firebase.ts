@@ -3,7 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-import { getAuth } from "firebase/auth";
+import { browserLocalPersistence, getAuth, onAuthStateChanged } from "firebase/auth";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -20,6 +20,7 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
+// https://github.com/googleapis/nodejs-firestore/issues/1031#issuecomment-636308604
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);

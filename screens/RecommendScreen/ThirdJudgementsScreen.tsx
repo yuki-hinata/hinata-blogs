@@ -6,7 +6,7 @@ import {
   getDocs,
 } from "@firebase/firestore";
 import { View, Text, StyleSheet } from "react-native";
-import { auth, db } from "../../firebase";
+import { auth, db } from "../../firebase/firebase";
 import { doc, setDoc, where } from "firebase/firestore";
 import { DefaultButton } from "../../ui/DefaultButton";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";

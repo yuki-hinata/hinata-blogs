@@ -3,36 +3,46 @@ import { View, Text, StyleSheet } from "react-native";
 import { DefaultButton } from "../../ui/DefaultButton";
 import { images } from "../../assets/index";
 import { Image } from "native-base";
-import { arrayUnion, doc, setDoc } from "firebase/firestore";
-import { auth, db } from "../../firebase";
+import { arrayUnion, collection, doc, query, setDoc } from "firebase/firestore";
+import { auth, db } from "../../firebase/firebase";
+import { createYourRecommend } from "../../modules/CreateYourSecondRecommend/createYourRecommend";
+import { LoadingIndicator } from "../../ui/LoadingIndicator";
 
 type Props = {
   name: string;
-  id: number;
+  id: string;
   handleName: keyof typeof images.icon;
   againJudgements: () => void;
-  navigateChatConfirm: () => void;
+  navigateChatConfirm: (id: string) => void;
 };
 
 export const YourRecommend: React.FC<Props> = (props) => {
   const user = auth.currentUser;
   const userId = user?.uid;
+  
+  const {
+    name,
+    secondId,
+    handleName
+  } = createYourRecommend(Number(props.id));
+
+  if (!name || !handleName) {
+    return <LoadingIndicator />
+  }
 
   const decideRecommendMan = async () => {
-    console.log('YourRecommendの中')
-    const RecommendRef = doc(db, "YourRecommend", String(props.id));
-    const RoomsRef = doc(db, "Rooms", String(props.id));
+    const roomsRef = doc(db, "Rooms", String(props.id));
+    const secondRoomsRef = doc(db, 'Rooms', String(secondId));
     await setDoc(
-      RecommendRef,
+      roomsRef,
       { userIds: arrayUnion(userId), name: props.name, handleName: props.handleName },
       { merge: true }
-    );
+    )
     await setDoc(
-      RoomsRef,
-      { userIds: arrayUnion(userId) },
-      { merge: true }
+      secondRoomsRef,
+      { name, handleName }, { merge: true }
     ).then(() => {
-      props.navigateChatConfirm();
+      props.navigateChatConfirm(props.id);
     });
   };
 

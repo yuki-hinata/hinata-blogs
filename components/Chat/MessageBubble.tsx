@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native';
 import { Bubble } from 'react-native-gifted-chat';
-import { auth } from '../../firebase';
+import { auth } from '../../firebase/firebase';
 
 // components
 import { LoadingIndicator } from '../../ui/LoadingIndicator';

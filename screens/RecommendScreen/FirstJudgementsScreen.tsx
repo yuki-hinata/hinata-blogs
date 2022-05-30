@@ -2,7 +2,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
 import { DefaultButton } from "../../ui/DefaultButton";
-import { auth } from "../../firebase";
+import { auth } from "../../firebase/firebase";
 import { saveFirstJudgements } from "../../modules/SaveFirstJudgements";
 import { Route } from '../../types/Route/Route'
 

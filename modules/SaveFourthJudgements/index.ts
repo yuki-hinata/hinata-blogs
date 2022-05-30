@@ -1,5 +1,5 @@
 import { setDoc, doc } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../../firebase/firebase";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Route } from '../../types/Route/Route'
 

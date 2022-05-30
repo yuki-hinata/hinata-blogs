@@ -1,4 +1,4 @@
 import { registerRootComponent } from "expo";
-import App from "./screens/App";
+import App from '../hinata-app/screens/App'
 
 registerRootComponent(App);
